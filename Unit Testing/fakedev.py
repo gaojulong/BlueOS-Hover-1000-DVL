@@ -30,7 +30,10 @@ class DvlDriver(threading.Thread):
         threading.Thread.__init__(self)
         self.should_send = MessageType.POSITION_DELTA
         self.current_orientation = DVL_DOWN
-        self.vel_data = """{
+        self.last_attitude = (0, 0, 0)
+        self.current_attitude = (0, 0, 0)
+        self.vel_data = dict()
+        """{
               "time": 106.3935775756836,
               "vx": -3.713480691658333e-05,
               "vy": 5.703703573090024e-05,
@@ -44,7 +47,8 @@ class DvlDriver(threading.Thread):
               "time_of_validity": 1638191471563017,
               "time_of_transmission": 1638191471752336
             }"""
-        self.pos_data = """{
+        self.pos_data = dict()
+        """{
               "ts": 49056.809,
               "x": 12.43563613697886467,
               "y": 64.617631152402609587,
@@ -58,6 +62,23 @@ class DvlDriver(threading.Thread):
               "format": "json_v3.1"
             }
         """
+    def set_vel_data(self):
+        self.vel_data["time"] = 0
+        self.vel_data["vx"] = 0
+        self.vel_data["vy"] = 0
+        self.vel_data["vz"] = 0
+        self.vel_data["fom"] = 0
+        self.vel_data["altitude"] = 4949815273284912
+        self.vel_data["velocity_valid"] = True
+
+    def set_pos_data(self):
+        self.pos_data["ts"] = 0
+        self.pos_data["x"] = 0
+        self.pos_data["y"] = 0
+        self.pos_data["z"] = 0
+        self.pos_data["roll"] = 0
+        self.pos_data["pitch"] = 0
+        self.pos_data["yaw"] = 0
 
     def setup_mavlink(self) -> None:
         """
@@ -146,7 +167,9 @@ class DvlDriver(threading.Thread):
         self.setup_params()
         print("设置完成")
         while True:
+            self.set_pos_data()
+            self.set_vel_data()
             time.sleep(0.2)
-            # self.handle_velocity(self.vel_data)
-            # self.handle_position_local(self.pos_data)
+            self.handle_velocity(self.vel_data)
+            self.handle_position_local(self.pos_data)
 
